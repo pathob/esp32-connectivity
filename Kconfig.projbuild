@@ -1,0 +1,21 @@
+menu "OTA config"
+
+config OTA_HOST_IP
+    string "OTA Host IP"
+	default "192.168.188.21"
+	help
+		OTA host IP to download the image file from.
+
+config OTA_HOST_PORT
+	string "OTA Host Port"
+	default "8080"
+	help
+		OTA host port to connect to.
+
+config OTA_IMAGE_FILE
+	string "OTA image file"
+	default "app.bin"
+	help
+		Filename of the app image for the OTA update.
+
+endmenu
