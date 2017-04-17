@@ -1,0 +1,34 @@
+menu "Wi-Fi config"
+
+    menu "Station Mode"
+
+    config WIFI_STA_SSID
+        string "Wi-Fi STA SSID"
+        help
+            WiFi SSID (network name) of router
+
+    config WIFI_STA_PASS
+        string "Wi-Fi STA Password"
+        help
+            WiFi password of router
+
+            Can be left blank if the network has no security set.
+
+    endmenu
+    menu "Soft-AP Mode"
+
+    config WIFI_AP_SSID
+        string "Wi-Fi AP SSID"
+        help
+            WiFi SSID (network name) of ESP32 network
+
+    config WIFI_AP_PASS
+        string "Wi-Fi AP Password"
+        help
+            WiFi password of ESP32 network
+
+            Can be left blank if the network has no security set.
+    endmenu
+
+endmenu
+
