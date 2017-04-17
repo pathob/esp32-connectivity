@@ -1,6 +1,6 @@
 #include <wifi.h>
 
-// static WIFI_callbacks_t *wifi_callbacks = NULL;
+static WIFI_callbacks_t wifi_callbacks;
 static const char *TAG = "WIFI";
 
 static void WIFI_init_station(void);
@@ -8,10 +8,12 @@ static esp_err_t event_handler(void *ctx, system_event_t *event);
 
 void WIFI_init(WIFI_callbacks_t* wifi_cb)
 {
-    if (wifi_cb == NULL) {
-        // printf("NULL!!!!\n");
+    if (wifi_cb != NULL) {
+        memcpy(&wifi_callbacks, wifi_cb, sizeof(WIFI_callbacks_t));
+    } else {
+        WIFI_callbacks_t wifi_null_cb = { NULL, NULL };
+        memcpy(&wifi_callbacks, &wifi_null_cb, sizeof(WIFI_callbacks_t));
     }
-    // *wifi_callbacks = *wifi_cb;
 
     WIFI_init_station();
     // TODO: Init AP
@@ -45,23 +47,17 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         xEventGroupSetBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT);
-        // TODO: Check code
-        /*
-        if (wifi_callbacks != NULL) {
-            wifi_callbacks->wifi_connected_callback();
+        if (wifi_callbacks.wifi_connected_callback != NULL) {
+            wifi_callbacks.wifi_connected_callback();
         }
-        */
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         // workaround: ESP32 WiFi libs currently don't auto-reassociate
         esp_wifi_connect();
         xEventGroupClearBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT);
-        // TODO: Check code
-        /*
         if (wifi_callbacks.wifi_disconnected_callback != NULL) {
             wifi_callbacks.wifi_disconnected_callback();
         }
-        */
         break;
     default:
         break;
