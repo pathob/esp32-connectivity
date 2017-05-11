@@ -1,12 +1,15 @@
 #ifndef __WIFI_H__
 #define __WIFI_H__
 
-#include "esp_wifi.h"
+#include "esp_err.h"
 #include "esp_event_loop.h"
+#include "esp_wifi.h"
 #include "esp_system.h"
 #include "esp_log.h"
 
 #include "string.h"
+
+#include "sdkconfig.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
