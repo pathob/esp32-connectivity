@@ -4,10 +4,11 @@
 #include "esp_err.h"
 #include "esp_event_loop.h"
 #include "esp_wifi.h"
+#include "esp_wifi_internal.h"
 #include "esp_system.h"
 #include "esp_log.h"
 
-#include "string.h"
+#include <string.h>
 
 #include "sdkconfig.h"
 
@@ -25,6 +26,15 @@
 
 // FreeRTOS event group to signal when we are connected & ready to make a request
 EventGroupHandle_t WIFI_event_group;
+
+/**
+ * WIFI packet injection API
+ */
+esp_err_t esp_wifi_80211_tx(
+        wifi_interface_t ifx,
+        const void *buffer,
+        int len,
+        bool en_sys_seq);
 
 /**
  * Currently only callback for station mode
