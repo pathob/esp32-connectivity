@@ -1,14 +1,17 @@
 #ifndef __WIFI_H__
 #define __WIFI_H__
 
+#include <string.h>
+
+#include "nvs.h"
+#include "nvs_flash.h"
+
 #include "esp_err.h"
 #include "esp_event_loop.h"
 #include "esp_wifi.h"
 #include "esp_wifi_internal.h"
 #include "esp_system.h"
 #include "esp_log.h"
-
-#include <string.h>
 
 #include "sdkconfig.h"
 
@@ -50,6 +53,8 @@ typedef struct WIFI_callbacks_t {
  * Pass NULL to set no function callbacks or
  * pass a WIFI_callbacks_t to specify function callbacks
  */
-void WIFI_init(WIFI_callbacks_t *wifi_cb);
+void WIFI_init(
+    wifi_mode_t wifi_mode,
+    WIFI_callbacks_t *wifi_callbacks);
 
 #endif
