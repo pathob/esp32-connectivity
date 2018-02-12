@@ -71,13 +71,19 @@ static void WIFI_config_sta()
 static void WIFI_config_ap()
 {
     if (strlen(WIFI_AP_SSID)) {
+        wifi_auth_mode_t wifi_auth_mode = WIFI_AUTH_WPA2_PSK;
+
+        if (strcmp(WIFI_AP_PASS, "") == 0) {
+            wifi_auth_mode = WIFI_AUTH_OPEN;
+        }
+
         wifi_config_t wifi_config = {
             .ap = {
                 .ssid = WIFI_AP_SSID,
+                .ssid_len = strlen(WIFI_AP_SSID),
                 .password = WIFI_AP_PASS,
-                .ssid_len = 10,
+                .authmode = wifi_auth_mode,
                 .channel = 0,
-                .authmode = WIFI_AUTH_WPA2_PSK,
                 .ssid_hidden = 0,
                 .max_connection = 4,
                 .beacon_interval = 100,
