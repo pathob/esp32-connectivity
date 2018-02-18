@@ -18,6 +18,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 
+#include "apps/sntp/sntp.h"
+
 #define WIFI_STA_SSID CONFIG_WIFI_STA_SSID
 #define WIFI_STA_PASS CONFIG_WIFI_STA_PASS
 
