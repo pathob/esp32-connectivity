@@ -29,6 +29,8 @@
 // are we connected with an AP
 #define WIFI_STA_CONNECTED_BIT BIT0
 
+typedef struct tm timeinfo_t;
+
 // FreeRTOS event group to signal when we are connected & ready to make a request
 EventGroupHandle_t WIFI_event_group;
 

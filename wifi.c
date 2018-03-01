@@ -112,7 +112,7 @@ static void SNTP_obtain_time()
 
     // wait for time to be set
     time_t now = 0;
-    struct tm timeinfo = { 0 };
+    timeinfo_t timeinfo = { 0 };
     int retry = 0;
     const int retry_count = 10;
 
