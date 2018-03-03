@@ -16,6 +16,8 @@ static esp_err_t event_handler(
     system_event_t *event);
 
 static WIFI_callbacks_t _wifi_callbacks;
+static uint8_t _sta_is_connected = 0;
+static ip4_addr_t _sta_ip4_addr;
 
 void WIFI_init(
     wifi_mode_t wifi_mode,
@@ -60,6 +62,16 @@ void WIFI_init(
     if (wifi_mode == WIFI_MODE_STA || wifi_mode == WIFI_MODE_APSTA) {
         SNTP_obtain_time();
     }
+}
+
+uint8_t WIFI_sta_is_connected()
+{
+    return _sta_is_connected;
+}
+
+ip4_addr_t WIFI_sta_ip4_addr()
+{
+    return _sta_ip4_addr;
 }
 
 static int8_t WIFI_sta_rssi()
@@ -211,6 +223,9 @@ static esp_err_t event_handler(
         }
         case SYSTEM_EVENT_STA_GOT_IP: {
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
+            _sta_is_connected = 1;
+            _sta_ip4_addr = event->event_info.got_ip.ip_info.ip;
+
             xEventGroupSetBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT);
             if (_wifi_callbacks.wifi_connected_callback) {
                 _wifi_callbacks.wifi_connected_callback();
@@ -223,6 +238,8 @@ static esp_err_t event_handler(
         }
         case SYSTEM_EVENT_STA_LOST_IP: {
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_LOST_IP");
+            _sta_is_connected = 0;
+            memset(&_sta_ip4_addr, 0, sizeof(ip4_addr_t));
             break;
         }
         case SYSTEM_EVENT_STA_STOP: {

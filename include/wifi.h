@@ -62,6 +62,10 @@ void WIFI_init(
     wifi_mode_t wifi_mode,
     WIFI_callbacks_t *wifi_callbacks);
 
+uint8_t WIFI_sta_is_connected();
+
+ip4_addr_t WIFI_sta_ip4_addr();
+
 void WIFI_sta_rssi_bitmap_8x8(
     uint8_t *bitmap);
 
