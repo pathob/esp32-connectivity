@@ -123,14 +123,20 @@ static void SNTP_obtain_time()
         localtime_r(&now, &timeinfo);
     }
 
-    char strftime_buf[64];
+    if (retry < retry_count) {
+        char strftime_buf[64];
 
-    // Set timezone to Eastern Standard Time and print local time
-    setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
-    tzset();
-    localtime_r(&now, &timeinfo);
-    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-    ESP_LOGI(TAG, "The current date/time in Berlin is: %s", strftime_buf);
+        // Set timezone to Eastern Standard Time and print local time
+        setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+        tzset();
+        localtime_r(&now, &timeinfo);
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+        ESP_LOGI(TAG, "The current date/time in Berlin is: %s", strftime_buf);
+
+        xEventGroupSetBits(WIFI_event_group, SNTP_TIME_SET_BIT);
+    } else {
+        ESP_LOGE(TAG, "Setting time failed");
+    }
 }
 
 static esp_err_t event_handler(

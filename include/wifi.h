@@ -28,6 +28,7 @@
 
 // are we connected with an AP
 #define WIFI_STA_CONNECTED_BIT BIT0
+#define SNTP_TIME_SET_BIT      BIT1
 
 typedef struct tm timeinfo_t;
 
