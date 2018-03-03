@@ -62,4 +62,7 @@ void WIFI_init(
     wifi_mode_t wifi_mode,
     WIFI_callbacks_t *wifi_callbacks);
 
+void WIFI_sta_rssi_bitmap_8x8(
+    uint8_t *bitmap);
+
 #endif

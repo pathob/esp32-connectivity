@@ -2,12 +2,15 @@
 
 static const char *TAG = "WIFI";
 
+#define RSSI_LEVELS 4
+static const int8_t RSSI_MIN = -100;
+static const int8_t RSSI_MAX = -55;
+
+static int8_t WIFI_sta_rssi();
+static uint8_t WIFI_sta_rssi_level();
 static void WIFI_config_sta();
-
 static void WIFI_config_ap();
-
 static void SNTP_obtain_time();
-
 static esp_err_t event_handler(
     void *context,
     system_event_t *event);
@@ -57,6 +60,57 @@ void WIFI_init(
     if (wifi_mode == WIFI_MODE_STA || wifi_mode == WIFI_MODE_APSTA) {
         SNTP_obtain_time();
     }
+}
+
+static int8_t WIFI_sta_rssi()
+{
+    wifi_ap_record_t wifi_ap_record;
+    esp_err_t esp_err = esp_wifi_sta_get_ap_info(&wifi_ap_record);
+
+    if (!esp_err) {
+        return wifi_ap_record.rssi;
+    }
+
+    return RSSI_MIN;
+}
+
+static uint8_t WIFI_sta_rssi_level()
+{
+    int8_t rssi = WIFI_sta_rssi();
+
+    if (rssi <= RSSI_MIN) {
+        return 0;
+    } else if (rssi >= RSSI_MAX) {
+        return RSSI_LEVELS - 1;
+    }
+
+    float inputRange = (RSSI_MAX - RSSI_MIN);
+    float outputRange = (RSSI_LEVELS - 1);
+    return (int)((float)(rssi - RSSI_MIN) * outputRange / inputRange);
+}
+
+void WIFI_sta_rssi_bitmap_8x8(
+    uint8_t *bitmap)
+{
+    uint8_t wifi_rssi_8x8[64] = { 0 };
+    uint8_t rssi_level = WIFI_sta_rssi_level();
+    uint16_t i = 0;
+
+    ESP_LOGI(TAG, "STA RSSI Level is %d", rssi_level);
+
+    for (uint8_t y = 0; y < 8; y++) {
+        for (uint8_t x = 0; x < 8; x++) {
+            if ((x == 1 && y > 5)
+                    || (x == 3 && y > 3 && rssi_level > 0)
+                    || (x == 5 && y > 1 && rssi_level > 1)
+                    || (x == 7 && rssi_level > 2)) {
+                wifi_rssi_8x8[i] = 1;
+            }
+            i++;
+        }
+    }
+
+    memcpy(bitmap, &wifi_rssi_8x8, sizeof(uint8_t) * 64);
 }
 
 static void WIFI_config_sta()
