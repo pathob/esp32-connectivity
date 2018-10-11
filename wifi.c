@@ -108,7 +108,7 @@ void WIFI_sta_rssi_bitmap_8x8(
     uint8_t rssi_level = WIFI_sta_rssi_level();
     uint16_t i = 0;
 
-    ESP_LOGI(TAG, "STA RSSI Level is %d", rssi_level);
+    // ESP_LOGI(TAG, "STA RSSI Level is %d", rssi_level);
 
     for (uint8_t y = 0; y < 8; y++) {
         for (uint8_t x = 0; x < 8; x++) {
