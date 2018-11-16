@@ -41,7 +41,6 @@ void WIFI_init(
         memcpy(&_wifi_callbacks, &wifi_null_cb, sizeof(WIFI_callbacks_t));
     }
 
-    WIFI_event_group = xEventGroupCreate();
     ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
     wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&config) );
@@ -169,7 +168,7 @@ static void WIFI_config_ap()
 
 static void SNTP_obtain_time()
 {
-    xEventGroupWaitBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT, false, true, portMAX_DELAY);
+    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
 
     ESP_LOGI(TAG, "Initializing SNTP");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -199,7 +198,7 @@ static void SNTP_obtain_time()
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI(TAG, "The current date/time in Berlin is: %s", strftime_buf);
 
-        xEventGroupSetBits(WIFI_event_group, SNTP_TIME_SET_BIT);
+        CONNECTIVITY_set(SNTP_TIME_SET);
     } else {
         ESP_LOGE(TAG, "Setting time failed");
     }
@@ -226,7 +225,7 @@ static esp_err_t event_handler(
             _sta_is_connected = 1;
             _sta_ip4_addr = event->event_info.got_ip.ip_info.ip;
 
-            xEventGroupSetBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT);
+            CONNECTIVITY_set(WIFI_STA_CONNECTED);
             if (_wifi_callbacks.wifi_connected_callback) {
                 _wifi_callbacks.wifi_connected_callback();
             }
@@ -250,7 +249,8 @@ static esp_err_t event_handler(
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
             // workaround: ESP32 WiFi libs currently don't auto-reassociate
             esp_wifi_connect();
-            xEventGroupClearBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT);
+
+            CONNECTIVITY_clear(WIFI_STA_CONNECTED);
             if (_wifi_callbacks.wifi_disconnected_callback) {
                 _wifi_callbacks.wifi_disconnected_callback();
             }

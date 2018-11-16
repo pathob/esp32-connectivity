@@ -3,8 +3,8 @@
 
 #include <string.h>
 
-#include "nvs.h"
-#include "nvs_flash.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
 
 #include "esp_err.h"
 #include "esp_event_loop.h"
@@ -13,12 +13,14 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
+#include "lwip/apps/sntp.h"
+
+#include "nvs.h"
+#include "nvs_flash.h"
+
 #include "sdkconfig.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-
-#include "lwip/apps/sntp.h"
+#include "connectivity/connectivity.h"
 
 #define WIFI_STA_SSID CONFIG_WIFI_STA_SSID
 #define WIFI_STA_PASS CONFIG_WIFI_STA_PASS
@@ -26,14 +28,9 @@
 #define WIFI_AP_PASS  CONFIG_WIFI_AP_PASS
 #define WIFI_AP_SSID  CONFIG_WIFI_AP_SSID
 
-// are we connected with an AP
-#define WIFI_STA_CONNECTED_BIT BIT0
-#define SNTP_TIME_SET_BIT      BIT1
-
 typedef struct tm timeinfo_t;
 
 // FreeRTOS event group to signal when we are connected & ready to make a request
-EventGroupHandle_t WIFI_event_group;
 
 /**
  * WIFI packet injection API
