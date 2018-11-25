@@ -1,33 +1,55 @@
-menu "Wi-Fi config"
+menu "Connectivity config"
 
-    menu "Station Mode"
+    menu "Wi-Fi config"
 
-    config WIFI_STA_SSID
-        string "Wi-Fi STA SSID"
-        help
-            WiFi SSID (network name) of router
+        menu "Station mode config"
 
-    config WIFI_STA_PASS
-        string "Wi-Fi STA Password"
-        help
-            WiFi password of router
+        config WIFI_STA_SSID
+            string "Wi-Fi STA SSID"
+            help
+                WiFi SSID (network name) of router
 
-            Can be left blank if the network has no security set.
+        config WIFI_STA_PASS
+            string "Wi-Fi STA Password"
+            help
+                WiFi password of router
+
+                Can be left blank if the network has no security set.
+
+        endmenu
+        menu "Soft-AP mode config"
+
+        config WIFI_AP_SSID
+            string "Wi-Fi AP SSID"
+            help
+                WiFi SSID (network name) of ESP32 network
+
+        config WIFI_AP_PASS
+            string "Wi-Fi AP Password"
+            help
+                WiFi password of ESP32 network
+
+                Can be left blank if the network has no security set.
+        endmenu
 
     endmenu
-    menu "Soft-AP Mode"
 
-    config WIFI_AP_SSID
-        string "Wi-Fi AP SSID"
-        help
-            WiFi SSID (network name) of ESP32 network
+    menu "OTA config"
 
-    config WIFI_AP_PASS
-        string "Wi-Fi AP Password"
-        help
-            WiFi password of ESP32 network
+        config OTA_UPDATE_INTERVAL
+            int "Check for updates every n minutes"
+            range 1 1440
+            default 1440
 
-            Can be left blank if the network has no security set.
+        config OTA_CHECK_AFTER_BOOT
+            bool "Check after boot"
+            default Y
+
+        config OTA_CHECK_AFTER_BOOT_BLOCKING
+            bool "Blocking check after boot"
+            depends on OTA_CHECK_AFTER_BOOT
+            default Y
+
     endmenu
 
 endmenu
