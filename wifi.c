@@ -1,4 +1,4 @@
-#include "wifi.h"
+#include "connectivity/wifi.h"
 
 static const char *TAG = "WIFI";
 
