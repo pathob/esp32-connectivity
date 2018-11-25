@@ -2,8 +2,8 @@
 #
 # (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
+COMPONENT_SRCDIRS := src
 COMPONENT_PRIV_INCLUDEDIRS := include/connectivity
-
 COMPONENT_EMBED_TXTFILES := certs/s3_amazonaws_com.pem
 
 ifdef TRAVIS_REPO_SLUG
