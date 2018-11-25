@@ -28,6 +28,17 @@
 #define WIFI_AP_PASS  CONFIG_WIFI_AP_PASS
 #define WIFI_AP_SSID  CONFIG_WIFI_AP_SSID
 
+#define RSSI_LEVELS 4
+
+#define NVS_WIFI_STORAGE  "WIFI"
+#define NVS_WIFI_STA_SSID "WIFI_STA_SSID"
+#define NVS_WIFI_STA_PASS "WIFI_STA_PASS"
+#define NVS_WIFI_AP_SSID  "WIFI_AP_SSID"
+#define NVS_WIFI_AP_PASS  "WIFI_AP_PASS"
+
+#define WIFI_MAX_SSID_LENGTH 32
+#define WIFI_MAX_PASS_LENGTH 64
+
 typedef struct tm timeinfo_t;
 
 // FreeRTOS event group to signal when we are connected & ready to make a request
