@@ -71,7 +71,7 @@ static void OTA_github_update_check(
     const char *current_version)
 {
     esp_err_t err;
-    ESP_LOGD(TAG, "OTA_github_update_check, repo slug: %s, tag: %s", repo_slag, current_version);
+    ESP_LOGD(TAG, "OTA_github_update_check, repo slug: %s, tag: %s", repo_slug, current_version);
 
     const char *api_github_format = "https://api.github.com/repos/%s/releases/latest";
     char *api_url = calloc(strlen(api_github_format) + strlen(repo_slug), sizeof(char));
