@@ -34,19 +34,23 @@ void OTA_update(
 
 void OTA_init()
 {
-#ifdef CONFIG_OTA_CHECK_AFTER_BOOT_BLOCKING
+    ESP_LOGD(TAG, "OTA_init");
+
+    #ifdef CONFIG_OTA_CHECK_AFTER_BOOT_BLOCKING
     OTA_start();
-#endif
+    #endif
+
     xTaskCreate(&OTA_task, "OTA_task", 4096, NULL, 10, NULL);
 }
 
 static void OTA_task(
     void *pvParameter)
 {
-    ESP_LOGI(TAG, "Start task");
-#if defined(CONFIG_OTA_CHECK_AFTER_BOOT) && !defined(CONFIG_OTA_CHECK_AFTER_BOOT_BLOCKING)
+    ESP_LOGD(TAG, "OTA_task");
+
+    #if defined(CONFIG_OTA_CHECK_AFTER_BOOT) && !defined(CONFIG_OTA_CHECK_AFTER_BOOT_BLOCKING)
     OTA_start();
-#endif
+    #endif
 
     while (1) {
         vTaskDelay(_update_interval_ms / portTICK_PERIOD_MS);
@@ -56,9 +60,10 @@ static void OTA_task(
 
 static void OTA_start()
 {
-#if defined(GITHUB_REPO_SLUG) && defined(GITHUB_TAG)
-    OTA_github_update_check(GITHUB_REPO_SLUG, GITHUB_TAG);
-#endif
+    ESP_LOGD(TAG, "OTA_start");
+    if (strlen(GITHUB_REPO_SLUG) && strlen(GITHUB_TAG)) {
+        OTA_github_update_check(GITHUB_REPO_SLUG, GITHUB_TAG);
+    }
 }
 
 static void OTA_github_update_check(
@@ -66,9 +71,7 @@ static void OTA_github_update_check(
     const char *current_version)
 {
     esp_err_t err;
-
-    ESP_LOGI(TAG, "Repo Slug: %s", repo_slug);
-    ESP_LOGI(TAG, "Tag: %s", current_version);
+    ESP_LOGD(TAG, "OTA_github_update_check, repo slug: %s, tag: %s", repo_slag, current_version);
 
     const char *api_github_format = "https://api.github.com/repos/%s/releases/latest";
     char *api_url = calloc(strlen(api_github_format) + strlen(repo_slug), sizeof(char));
@@ -174,6 +177,7 @@ void OTA_update(
     const char *cert_pem)
 {
     esp_err_t ret;
+    ESP_LOGD(TAG, "OTA_update");
     ESP_LOGI(TAG, "Start updating from URL %s", update_url);
 
     esp_http_client_config_t http_config_ota = {
