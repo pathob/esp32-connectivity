@@ -56,8 +56,8 @@ static void OTA_task(
 
 static void OTA_start()
 {
-#if defined(TRAVIS_REPO_SLUG) && defined(TRAVIS_TAG)
-    OTA_github_update_check(TRAVIS_REPO_SLUG, TRAVIS_TAG);
+#if defined(GITHUB_REPO_SLUG) && defined(GITHUB_TAG)
+    OTA_github_update_check(GITHUB_REPO_SLUG, GITHUB_TAG);
 #endif
 }
 
