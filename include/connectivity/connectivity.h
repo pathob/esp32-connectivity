@@ -14,6 +14,9 @@
 
 extern EventGroupHandle_t CONNECTIVITY_event_group;
 
+void CONNECTIVITY_device_id(
+    char **device_id);
+
 void CONNECTIVITY_wait(
     const EventBits_t bits);
 

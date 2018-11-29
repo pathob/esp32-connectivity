@@ -1,5 +1,52 @@
 menu "Connectivity config"
 
+    menu "MQTT config"
+
+        config MQTT_HOST
+            string "MQTT Host"
+            help
+                MQTT host, e.g. iot.eclipse.org
+
+        config MQTT_PORT
+            int "MQTT Port"
+            help
+                MQTT port, e.g. 1883
+
+        config MQTT_USERNAME
+            string "MQTT Username"
+
+        config MQTT_PASSWORD
+            string "MQTT Password"
+
+        config MQTT_CLIENT_ID
+            string "MQTT Client ID"
+            help
+                MQTT client ID, e.g. ESP32-123
+
+    endmenu
+
+    menu "OTA config"
+
+        config OTA_UPDATE_INTERVAL
+            int "Check for updates every n minutes"
+            range 1 1440
+            default 1440
+
+        config OTA_CHECK_AFTER_BOOT
+            bool "Check after boot"
+            default Y
+
+        config OTA_CHECK_AFTER_BOOT_BLOCKING
+            bool "Blocking check after boot"
+            depends on OTA_CHECK_AFTER_BOOT
+            default Y
+
+    endmenu
+
+    menu "SNTP config"
+
+    endmenu
+
     menu "Wi-Fi config"
 
         menu "Station mode config"
@@ -31,24 +78,6 @@ menu "Connectivity config"
 
                 Can be left blank if the network has no security set.
         endmenu
-
-    endmenu
-
-    menu "OTA config"
-
-        config OTA_UPDATE_INTERVAL
-            int "Check for updates every n minutes"
-            range 1 1440
-            default 1440
-
-        config OTA_CHECK_AFTER_BOOT
-            bool "Check after boot"
-            default Y
-
-        config OTA_CHECK_AFTER_BOOT_BLOCKING
-            bool "Blocking check after boot"
-            depends on OTA_CHECK_AFTER_BOOT
-            default Y
 
     endmenu
 
