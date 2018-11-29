@@ -9,6 +9,7 @@ menu "Connectivity config"
 
         config MQTT_PORT
             int "MQTT Port"
+            default 1883
             help
                 MQTT port, e.g. 1883
 
