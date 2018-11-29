@@ -1,5 +1,11 @@
 #include "connectivity/wifi.h"
 
+#define NVS_WIFI_STORAGE  "WIFI"
+#define NVS_WIFI_STA_SSID "WIFI_STA_SSID"
+#define NVS_WIFI_STA_PASS "WIFI_STA_PASS"
+#define NVS_WIFI_AP_SSID  "WIFI_AP_SSID"
+#define NVS_WIFI_AP_PASS  "WIFI_AP_PASS"
+
 static const char *TAG = "WIFI";
 
 static const int8_t RSSI_MIN = -100;
@@ -9,12 +15,19 @@ static WIFI_callbacks_t _wifi_callbacks;
 static uint8_t _sta_is_connected = 0;
 static ip4_addr_t _sta_ip4_addr;
 
+static uint32_t _wifi_sta_connectivity_bit;
 static char _sta_ssid[WIFI_MAX_SSID_LENGTH] = { 0 };
 static char _sta_pass[WIFI_MAX_PASS_LENGTH] = { 0 };
+
+static uint32_t _wifi_ap_connectivity_bit;
 
 // Method declarations
 
 static void WIFI_credentials_init();
+
+static void WIFI_sta_connectivity_set();
+
+static void WIFI_sta_connectivity_clear();
 
 static int8_t WIFI_sta_rssi();
 
@@ -23,8 +36,6 @@ static uint8_t WIFI_sta_rssi_level();
 static void WIFI_config_sta();
 
 static void WIFI_config_ap();
-
-static void SNTP_obtain_time();
 
 static esp_err_t event_handler(
     void *context,
@@ -36,6 +47,9 @@ void WIFI_init(
     wifi_mode_t wifi_mode,
     WIFI_callbacks_t* wifi_callbacks)
 {
+    _wifi_sta_connectivity_bit = CONNECTIVITY_bit();
+    _wifi_ap_connectivity_bit = CONNECTIVITY_bit();
+
     WIFI_credentials_init();
     tcpip_adapter_init();
 
@@ -62,10 +76,6 @@ void WIFI_init(
     }
 
     ESP_ERROR_CHECK( esp_wifi_start() );
-
-    if (wifi_mode == WIFI_MODE_STA || wifi_mode == WIFI_MODE_APSTA) {
-        SNTP_obtain_time();
-    }
 }
 
 static void WIFI_credentials_init()
@@ -129,6 +139,21 @@ static void WIFI_credentials_init()
     }
 
     nvs_close(nvs);
+}
+
+void WIFI_sta_connectivity_wait()
+{
+    CONNECTIVITY_wait(_wifi_sta_connectivity_bit);
+}
+
+static void WIFI_sta_connectivity_set()
+{
+    CONNECTIVITY_set(_wifi_sta_connectivity_bit);
+}
+
+static void WIFI_sta_connectivity_clear()
+{
+    CONNECTIVITY_clear(_wifi_sta_connectivity_bit);
 }
 
 uint8_t WIFI_sta_is_connected()
@@ -214,7 +239,7 @@ static void WIFI_config_sta()
 
 static void WIFI_config_ap()
 {
-    if (strlen(WIFI_AP_SSID)) {
+    if (strlen(CONFIG_WIFI_AP_SSID)) {
         wifi_auth_mode_t wifi_auth_mode = WIFI_AUTH_WPA2_PSK;
 
         if (strlen(CONFIG_WIFI_AP_PASS) == 0) {
@@ -225,7 +250,7 @@ static void WIFI_config_ap()
             .ap = {
                 .ssid = CONFIG_WIFI_AP_SSID,
                 .ssid_len = strlen(CONFIG_WIFI_AP_SSID),
-                .password = WIFI_AP_PASS,
+                .password = CONFIG_WIFI_AP_PASS,
                 .authmode = wifi_auth_mode,
                 .channel = 0,
                 .ssid_hidden = 0,
@@ -236,44 +261,6 @@ static void WIFI_config_ap()
 
         ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config) );
         ESP_LOGI(TAG, "Setting WiFi access point configuration SSID %s...", wifi_config.ap.ssid);
-    }
-}
-
-static void SNTP_obtain_time()
-{
-    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
-
-    ESP_LOGI(TAG, "Initializing SNTP");
-    sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    sntp_setservername(0, "pool.ntp.org");
-    sntp_init();
-
-    // wait for time to be set
-    time_t now = 0;
-    timeinfo_t timeinfo = { 0 };
-    int retry = 0;
-    const int retry_count = 10;
-
-    while (timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
-        ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        time(&now);
-        localtime_r(&now, &timeinfo);
-    }
-
-    if (retry < retry_count) {
-        char strftime_buf[64];
-
-        // Set timezone to Eastern Standard Time and print local time
-        setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
-        tzset();
-        localtime_r(&now, &timeinfo);
-        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-        ESP_LOGI(TAG, "The current date/time in Berlin is: %s", strftime_buf);
-
-        CONNECTIVITY_set(SNTP_TIME_SET);
-    } else {
-        ESP_LOGE(TAG, "Setting time failed");
     }
 }
 
@@ -298,7 +285,7 @@ static esp_err_t event_handler(
             _sta_is_connected = 1;
             _sta_ip4_addr = event->event_info.got_ip.ip_info.ip;
 
-            CONNECTIVITY_set(WIFI_STA_CONNECTED);
+            WIFI_sta_connectivity_set();
             if (_wifi_callbacks.wifi_connected_callback) {
                 _wifi_callbacks.wifi_connected_callback();
             }
@@ -323,7 +310,7 @@ static esp_err_t event_handler(
             // workaround: ESP32 WiFi libs currently don't auto-reassociate
             esp_wifi_connect();
 
-            CONNECTIVITY_clear(WIFI_STA_CONNECTED);
+            WIFI_sta_connectivity_clear();
             if (_wifi_callbacks.wifi_disconnected_callback) {
                 _wifi_callbacks.wifi_disconnected_callback();
             }

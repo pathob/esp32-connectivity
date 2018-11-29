@@ -23,6 +23,7 @@
 #include "nvs_flash.h"
 
 #include "connectivity/connectivity.h"
+#include "connectivity/wifi.h"
 
 #include "sdkconfig.h"
 
@@ -48,5 +49,7 @@ int MQTT_publish(
     int len,
     int qos,
     int retain);
+
+void MQTT_connectivity_wait();
 
 #endif

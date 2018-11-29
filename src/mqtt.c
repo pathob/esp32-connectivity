@@ -11,6 +11,7 @@ static const char *TAG = "MQTT";
 
 static esp_mqtt_client_handle_t _mqtt_client;
 static MQTT_callback_handler_t _mqtt_callback_handler;
+static uint32_t _mqtt_connectivity_bit;
 
 static char mqtt_host[64];
 static uint16_t mqtt_port;
@@ -23,9 +24,15 @@ static void MQTT_client_init();
 static esp_err_t MQTT_event_handler(
     esp_mqtt_event_handle_t event);
 
+static void MQTT_connectivity_set();
+
+static void MQTT_connectivity_clear();
+
 void MQTT_init(
     MQTT_callback_handler_t *mqtt_callback_handler)
 {
+    _mqtt_connectivity_bit = CONNECTIVITY_bit();
+
     if (mqtt_callback_handler != NULL) {
         memcpy(&_mqtt_callback_handler, mqtt_callback_handler, sizeof(MQTT_callback_handler_t));
     } else {
@@ -39,7 +46,7 @@ void MQTT_init(
 
     MQTT_client_init();
 
-    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
+    WIFI_sta_connectivity_wait();
     esp_mqtt_client_start(_mqtt_client);
 }
 
@@ -179,7 +186,7 @@ static esp_err_t MQTT_event_handler(
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED: {
             ESP_LOGD(TAG, "MQTT_EVENT_CONNECTED");
-            CONNECTIVITY_set(MQTT_CONNECTED);
+            MQTT_connectivity_set();
 
             if (_mqtt_callback_handler.connected_handler != NULL) {
                 _mqtt_callback_handler.connected_handler(event);
@@ -188,7 +195,7 @@ static esp_err_t MQTT_event_handler(
         }
         case MQTT_EVENT_DISCONNECTED: {
             ESP_LOGD(TAG, "MQTT_EVENT_DISCONNECTED");
-            CONNECTIVITY_clear(MQTT_CONNECTED);
+            MQTT_connectivity_clear();
 
             if (_mqtt_callback_handler.disconnected_handler != NULL) {
                 _mqtt_callback_handler.disconnected_handler(event);
@@ -234,4 +241,19 @@ static esp_err_t MQTT_event_handler(
     }
 
     return ESP_OK;
+}
+
+void MQTT_connectivity_wait()
+{
+    CONNECTIVITY_wait(_mqtt_connectivity_bit);
+}
+
+static void MQTT_connectivity_set()
+{
+    CONNECTIVITY_set(_mqtt_connectivity_bit);
+}
+
+static void MQTT_connectivity_clear()
+{
+    CONNECTIVITY_clear(_mqtt_connectivity_bit);
 }

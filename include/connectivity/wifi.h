@@ -13,8 +13,6 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
-#include "lwip/apps/sntp.h"
-
 #include "nvs.h"
 #include "nvs_flash.h"
 
@@ -22,19 +20,7 @@
 
 #include "connectivity/connectivity.h"
 
-#define WIFI_STA_SSID CONFIG_WIFI_STA_SSID
-#define WIFI_STA_PASS CONFIG_WIFI_STA_PASS
-
-#define WIFI_AP_PASS  CONFIG_WIFI_AP_PASS
-#define WIFI_AP_SSID  CONFIG_WIFI_AP_SSID
-
 #define RSSI_LEVELS 4
-
-#define NVS_WIFI_STORAGE  "WIFI"
-#define NVS_WIFI_STA_SSID "WIFI_STA_SSID"
-#define NVS_WIFI_STA_PASS "WIFI_STA_PASS"
-#define NVS_WIFI_AP_SSID  "WIFI_AP_SSID"
-#define NVS_WIFI_AP_PASS  "WIFI_AP_PASS"
 
 #define WIFI_MAX_SSID_LENGTH 32
 #define WIFI_MAX_PASS_LENGTH 64
@@ -69,6 +55,8 @@ typedef struct WIFI_callbacks_t {
 void WIFI_init(
     wifi_mode_t wifi_mode,
     WIFI_callbacks_t *wifi_callbacks);
+
+void WIFI_sta_connectivity_wait();
 
 uint8_t WIFI_sta_is_connected();
 
