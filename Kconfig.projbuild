@@ -35,12 +35,12 @@ menu "Connectivity config"
 
         config OTA_CHECK_AFTER_BOOT
             bool "Check after boot"
-            default Y
+            default y
 
         config OTA_CHECK_AFTER_BOOT_BLOCKING
             bool "Blocking check after boot"
             depends on OTA_CHECK_AFTER_BOOT
-            default Y
+            default y
 
     endmenu
 
