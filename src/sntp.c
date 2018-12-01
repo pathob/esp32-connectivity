@@ -2,16 +2,16 @@
 
 static const char *TAG = "SNTP";
 
-static uint32_t _sntp_connectivity_bit;
+static volatile EventBits_t _sntp_connectivity_bit = 0;
 
-static void SNTP_connectivity_set();
+static esp_err_t SNTP_connectivity_set();
 
 void SNTP_init()
 {
     // TODO: Besser start task
 
     _sntp_connectivity_bit = CONNECTIVITY_bit();
-    WIFI_sta_connectivity_wait();
+    ESP_ERROR_CHECK(WIFI_sta_connectivity_wait());
 
     ESP_LOGI(TAG, "Initializing SNTP");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -47,12 +47,12 @@ void SNTP_init()
     }
 }
 
-void SNTP_connectivity_wait()
+esp_err_t SNTP_connectivity_wait()
 {
-    CONNECTIVITY_wait(_sntp_connectivity_bit);
+    return CONNECTIVITY_wait(_sntp_connectivity_bit);
 }
 
-static void SNTP_connectivity_set()
+static esp_err_t SNTP_connectivity_set()
 {
-    CONNECTIVITY_set(_sntp_connectivity_bit);
+    return CONNECTIVITY_set(_sntp_connectivity_bit);
 }

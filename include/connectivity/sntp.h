@@ -23,6 +23,6 @@
 
 void SNTP_init();
 
-void SNTP_connectivity_wait();
+esp_err_t SNTP_connectivity_wait();
 
 #endif

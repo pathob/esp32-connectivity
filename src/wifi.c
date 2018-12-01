@@ -15,23 +15,21 @@ static WIFI_callbacks_t _wifi_callbacks;
 static uint8_t _sta_is_connected = 0;
 static ip4_addr_t _sta_ip4_addr;
 
-static uint32_t _wifi_sta_connectivity_bit;
+static volatile EventBits_t _wifi_sta_connectivity_bit = 0;
 static char _sta_ssid[WIFI_MAX_SSID_LENGTH] = { 0 };
 static char _sta_pass[WIFI_MAX_PASS_LENGTH] = { 0 };
 
-static uint32_t _wifi_ap_connectivity_bit;
+static volatile EventBits_t _wifi_ap_connectivity_bit = 0;
 
 // Method declarations
 
 static void WIFI_credentials_init();
 
-static void WIFI_sta_connectivity_set();
+static esp_err_t WIFI_sta_connectivity_set();
 
-static void WIFI_sta_connectivity_clear();
+static esp_err_t WIFI_sta_connectivity_clear();
 
 static int8_t WIFI_sta_rssi();
-
-static uint8_t WIFI_sta_rssi_level();
 
 static void WIFI_config_sta();
 
@@ -141,19 +139,19 @@ static void WIFI_credentials_init()
     nvs_close(nvs);
 }
 
-void WIFI_sta_connectivity_wait()
+esp_err_t WIFI_sta_connectivity_wait()
 {
-    CONNECTIVITY_wait(_wifi_sta_connectivity_bit);
+    return CONNECTIVITY_wait(_wifi_sta_connectivity_bit);
 }
 
-static void WIFI_sta_connectivity_set()
+static esp_err_t WIFI_sta_connectivity_set()
 {
-    CONNECTIVITY_set(_wifi_sta_connectivity_bit);
+    return CONNECTIVITY_set(_wifi_sta_connectivity_bit);
 }
 
-static void WIFI_sta_connectivity_clear()
+static esp_err_t WIFI_sta_connectivity_clear()
 {
-    CONNECTIVITY_clear(_wifi_sta_connectivity_bit);
+    return CONNECTIVITY_clear(_wifi_sta_connectivity_bit);
 }
 
 uint8_t WIFI_sta_is_connected()
@@ -178,7 +176,7 @@ static int8_t WIFI_sta_rssi()
     return RSSI_MIN;
 }
 
-static uint8_t WIFI_sta_rssi_level()
+uint8_t WIFI_sta_rssi_level()
 {
     int8_t rssi = WIFI_sta_rssi();
 
@@ -191,30 +189,6 @@ static uint8_t WIFI_sta_rssi_level()
     float inputRange = (RSSI_MAX - RSSI_MIN);
     float outputRange = (RSSI_LEVELS - 1);
     return (int)((float)(rssi - RSSI_MIN) * outputRange / inputRange);
-}
-
-void WIFI_sta_rssi_bitmap_8x8(
-    uint8_t *bitmap)
-{
-    uint8_t wifi_rssi_8x8[64] = { 0 };
-    uint8_t rssi_level = WIFI_sta_rssi_level();
-    uint16_t i = 0;
-
-    // ESP_LOGI(TAG, "STA RSSI Level is %d", rssi_level);
-
-    for (uint8_t y = 0; y < 8; y++) {
-        for (uint8_t x = 0; x < 8; x++) {
-            if ((x == 1 && y > 5)
-                    || (x == 3 && y > 3 && rssi_level > 0)
-                    || (x == 5 && y > 1 && rssi_level > 1)
-                    || (x == 7 && rssi_level > 2)) {
-                wifi_rssi_8x8[i] = 1;
-            }
-            i++;
-        }
-    }
-
-    memcpy(bitmap, &wifi_rssi_8x8, sizeof(uint8_t) * 64);
 }
 
 static void WIFI_config_sta()

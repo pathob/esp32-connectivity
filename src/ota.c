@@ -61,7 +61,7 @@ static void OTA_task(
 static void OTA_start()
 {
     ESP_LOGI(TAG, "OTA_start");
-    WIFI_sta_connectivity_wait();
+    ESP_ERROR_CHECK(WIFI_sta_connectivity_wait());
 
     #if defined(GITHUB_REPO_SLUG) && defined(GITHUB_TAG)
     OTA_github_update_check(GITHUB_REPO_SLUG, GITHUB_TAG);

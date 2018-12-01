@@ -12,18 +12,18 @@
 
 extern EventGroupHandle_t CONNECTIVITY_event_group;
 
-uint32_t CONNECTIVITY_bit();
+EventBits_t CONNECTIVITY_bit();
 
 void CONNECTIVITY_device_id(
-    char **device_id);
+    char *device_id);
 
-void CONNECTIVITY_wait(
+esp_err_t CONNECTIVITY_wait(
     const EventBits_t bits);
 
-void CONNECTIVITY_set(
+esp_err_t CONNECTIVITY_set(
     const EventBits_t bits);
 
-void CONNECTIVITY_clear(
+esp_err_t CONNECTIVITY_clear(
     const EventBits_t bits);
 
 #endif

@@ -36,7 +36,7 @@ void MQTT_init(
     if (mqtt_callback_handler != NULL) {
         memcpy(&_mqtt_callback_handler, mqtt_callback_handler, sizeof(MQTT_callback_handler_t));
     } else {
-        MQTT_callback_handler_t mqtt_callback_handler = { NULL };
+        MQTT_callback_handler_t mqtt_callback_handler = { NULL };   
         memcpy(&_mqtt_callback_handler, &mqtt_callback_handler, sizeof(MQTT_callback_handler_t));
     }
 
@@ -46,7 +46,7 @@ void MQTT_init(
 
     MQTT_client_init();
 
-    WIFI_sta_connectivity_wait();
+    ESP_ERROR_CHECK(WIFI_sta_connectivity_wait());
     esp_mqtt_client_start(_mqtt_client);
 }
 
