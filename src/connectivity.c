@@ -64,3 +64,13 @@ esp_err_t CONNECTIVITY_clear(
     xEventGroupClearBits(_connectivity_event_group, bits);
     return ESP_OK;
 }
+
+uint8_t CONNECTIVITY_get(
+    const EventBits_t bits)
+{
+    CONNECTIVITY_init();
+    if (xEventGroupGetBits(_connectivity_event_group) & bits) {
+        return 1;
+    }
+    return 0;
+}

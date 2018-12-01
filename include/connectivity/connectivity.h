@@ -26,4 +26,7 @@ esp_err_t CONNECTIVITY_set(
 esp_err_t CONNECTIVITY_clear(
     const EventBits_t bits);
 
+uint8_t CONNECTIVITY_get(
+    const EventBits_t bits);
+
 #endif
