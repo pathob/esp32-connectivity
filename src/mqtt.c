@@ -167,6 +167,11 @@ int MQTT_subscribe(
     const char *topic,
     int qos)
 {
+    if (!WIFI_sta_is_connected()) {
+        ESP_LOGE(TAG, "Cannot subscribe to topic '%s', no Wi-Fi connection", topic);
+        return 0;
+    }
+
     return esp_mqtt_client_subscribe(_mqtt_client, topic, qos);
 }
 
@@ -177,6 +182,11 @@ int MQTT_publish(
     int qos,
     int retain)
 {
+    if (!WIFI_sta_is_connected()) {
+        ESP_LOGE(TAG, "Cannot publish to topic '%s', no Wi-Fi connection", topic);
+        return 0;
+    }
+
     return esp_mqtt_client_publish(_mqtt_client, topic, data, len, qos, retain);
 }
 
