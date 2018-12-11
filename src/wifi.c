@@ -12,14 +12,16 @@ static const int8_t RSSI_MIN = -100;
 static const int8_t RSSI_MAX = -55;
 
 static WIFI_callbacks_t _wifi_callbacks;
-static uint8_t _sta_is_connected = 0;
-static ip4_addr_t _sta_ip4_addr;
 
+static ip4_addr_t _sta_ip4_addr;
 static volatile EventBits_t _wifi_sta_connectivity_bit = 0;
 static char _sta_ssid[WIFI_MAX_SSID_LENGTH] = { 0 };
 static char _sta_pass[WIFI_MAX_PASS_LENGTH] = { 0 };
 
+static ip4_addr_t _ap_ip4_addr;
 static volatile EventBits_t _wifi_ap_connectivity_bit = 0;
+static char _ap_ssid[WIFI_MAX_SSID_LENGTH] = { 0 };
+static char _ap_pass[WIFI_MAX_PASS_LENGTH] = { 0 };
 
 // Method declarations
 
@@ -98,6 +100,7 @@ static void WIFI_credentials_init()
         return;
     }
 
+    #ifdef CONFIG_WIFI_STA_SSID
     if (strlen(CONFIG_WIFI_STA_SSID)) {
         ESP_LOGI(TAG, "Storing WIFI station SSID %s and password in NVS", CONFIG_WIFI_STA_SSID);
 
@@ -135,8 +138,66 @@ static void WIFI_credentials_init()
             ESP_LOGE(TAG, "Error (%s) reading NVS", esp_err_to_name(ret));
         }
     }
+    #endif
+
+    #ifdef CONFIG_WIFI_AP_SSID
+    if (strlen(CONFIG_WIFI_AP_SSID)) {
+        ESP_LOGI(TAG, "Storing WIFI access-point SSID %s and password in NVS", CONFIG_WIFI_AP_SSID);
+
+        ret = nvs_set_str(nvs, NVS_WIFI_AP_SSID, CONFIG_WIFI_AP_SSID);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error (%s) writing NVS", esp_err_to_name(ret));
+        }
+
+        ret = nvs_set_str(nvs, NVS_WIFI_AP_PASS, CONFIG_WIFI_AP_PASS);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error (%s) writing NVS", esp_err_to_name(ret));
+        }
+
+        ret = nvs_commit(nvs);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Could not store new NVS data");
+        }
+
+        // There is no need to read the just written data from NVS again
+        strcpy(_ap_ssid, CONFIG_WIFI_AP_SSID);
+        strcpy(_ap_pass, CONFIG_WIFI_AP_PASS);
+    } else {
+        ESP_LOGI(TAG, "Reading WIFI station credentials from NVS");
+
+        size_t ap_ssid_len = sizeof(_ap_ssid);
+        size_t ap_pass_len = sizeof(_ap_pass);
+
+        ret = nvs_get_str(nvs, NVS_WIFI_AP_SSID, _ap_ssid, &ap_ssid_len);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error (%s) reading NVS", esp_err_to_name(ret));
+        }
+
+        ret = nvs_get_str(nvs, NVS_WIFI_AP_PASS, _ap_pass, &ap_pass_len);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error (%s) reading NVS", esp_err_to_name(ret));
+        }
+    }
+    #endif
 
     nvs_close(nvs);
+}
+
+uint8_t WIFI_sta_is_configured()
+{
+    wifi_mode_t wifi_mode;
+    esp_wifi_get_mode(&wifi_mode);
+
+    if (wifi_mode == WIFI_MODE_STA || wifi_mode == WIFI_MODE_APSTA) {
+        return strlen(_sta_ssid) > 0;
+    }
+
+    return 0;
+}
+
+uint8_t WIFI_sta_is_connected()
+{
+    return CONNECTIVITY_get(_wifi_sta_connectivity_bit);
 }
 
 esp_err_t WIFI_sta_connectivity_wait()
@@ -152,11 +213,6 @@ static esp_err_t WIFI_sta_connectivity_set()
 static esp_err_t WIFI_sta_connectivity_clear()
 {
     return CONNECTIVITY_clear(_wifi_sta_connectivity_bit);
-}
-
-uint8_t WIFI_sta_is_connected()
-{
-    return _sta_is_connected;
 }
 
 ip4_addr_t WIFI_sta_ip4_addr()
@@ -211,27 +267,49 @@ static void WIFI_config_sta()
     }
 }
 
+uint8_t WIFI_ap_is_configured()
+{
+    wifi_mode_t wifi_mode;
+    esp_wifi_get_mode(&wifi_mode);
+
+    if (wifi_mode == WIFI_MODE_AP || wifi_mode == WIFI_MODE_APSTA) {
+        return strlen(_ap_ssid) > 0;
+    }
+
+    return 0;
+}
+
+uint8_t WIFI_ap_is_connected()
+{
+    return CONNECTIVITY_get(_wifi_ap_connectivity_bit);
+}
+
+esp_err_t WIFI_ap_connectivity_wait()
+{
+    return CONNECTIVITY_wait(_wifi_ap_connectivity_bit);
+}
+
 static void WIFI_config_ap()
 {
-    if (strlen(CONFIG_WIFI_AP_SSID)) {
-        wifi_auth_mode_t wifi_auth_mode = WIFI_AUTH_WPA2_PSK;
+    if (strlen(_ap_ssid)) {
+        wifi_ap_config_t wifi_ap_config;
+        memset(&wifi_ap_config, 0, sizeof(wifi_ap_config_t));
+        memcpy(wifi_ap_config.ssid, _ap_ssid, strlen(_ap_ssid)+1);
 
-        if (strlen(CONFIG_WIFI_AP_PASS) == 0) {
-            wifi_auth_mode = WIFI_AUTH_OPEN;
+        wifi_auth_mode_t wifi_auth_mode = WIFI_AUTH_OPEN;
+
+        if (strlen(_ap_pass)) {
+            wifi_auth_mode = WIFI_AUTH_WPA2_PSK;
+            memcpy(wifi_ap_config.password, _ap_pass, strlen(_ap_pass)+1);
         }
 
-        wifi_config_t wifi_config = {
-            .ap = {
-                .ssid = CONFIG_WIFI_AP_SSID,
-                .ssid_len = strlen(CONFIG_WIFI_AP_SSID),
-                .password = CONFIG_WIFI_AP_PASS,
-                .authmode = wifi_auth_mode,
-                .channel = 0,
-                .ssid_hidden = 0,
-                .max_connection = 4,
-                .beacon_interval = 100,
-            }
-        };
+        wifi_ap_config.authmode = wifi_auth_mode;
+        wifi_ap_config.max_connection = 4;
+        wifi_ap_config.beacon_interval = 100;
+
+        wifi_config_t wifi_config;
+        memset(&wifi_config, 0, sizeof(wifi_config_t));
+        memcpy(&wifi_config.ap, &wifi_ap_config, sizeof(wifi_ap_config_t));
 
         ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config) );
         ESP_LOGI(TAG, "Setting WiFi access point configuration SSID %s...", wifi_config.ap.ssid);
@@ -256,7 +334,6 @@ static esp_err_t event_handler(
         }
         case SYSTEM_EVENT_STA_GOT_IP: {
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
-            _sta_is_connected = 1;
             _sta_ip4_addr = event->event_info.got_ip.ip_info.ip;
 
             WIFI_sta_connectivity_set();
@@ -271,7 +348,7 @@ static esp_err_t event_handler(
         }
         case SYSTEM_EVENT_STA_LOST_IP: {
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_LOST_IP");
-            _sta_is_connected = 0;
+            WIFI_sta_connectivity_clear();
             memset(&_sta_ip4_addr, 0, sizeof(ip4_addr_t));
             break;
         }
@@ -284,7 +361,6 @@ static esp_err_t event_handler(
             // workaround: ESP32 WiFi libs currently don't auto-reassociate
             esp_wifi_connect();
 
-            WIFI_sta_connectivity_clear();
             if (_wifi_callbacks.wifi_disconnected_callback) {
                 _wifi_callbacks.wifi_disconnected_callback();
             }
