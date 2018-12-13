@@ -165,7 +165,7 @@ static void MQTT_client_init()
 
 int MQTT_subscribe(
     const char *topic,
-    int qos)
+    MQTT_qos_t qos)
 {
     if (!WIFI_sta_is_connected()) {
         ESP_LOGE(TAG, "Cannot subscribe to topic '%s', no Wi-Fi connection", topic);
@@ -175,11 +175,17 @@ int MQTT_subscribe(
     return esp_mqtt_client_subscribe(_mqtt_client, topic, qos);
 }
 
+int MQTT_unsubscribe(
+    const char *topic)
+{
+    return esp_mqtt_client_unsubscribe(_mqtt_client, topic);
+}
+
 int MQTT_publish(
     const char *topic,
     const char *data,
     int len,
-    int qos,
+    MQTT_qos_t qos,
     int retain)
 {
     if (!WIFI_sta_is_connected()) {
