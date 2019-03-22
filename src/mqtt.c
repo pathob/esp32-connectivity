@@ -254,6 +254,10 @@ static esp_err_t MQTT_event_handler(
             ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
             break;
         }
+	default: {
+	    ESP_LOGE(TAG, "DEFAULT");
+	    break;
+	}
     }
 
     return ESP_OK;
